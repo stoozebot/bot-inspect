@@ -1,0 +1,27 @@
+{
+	"name": "bot-inspect",
+	"version": "0.0.0",
+	"private": true,
+	"scripts": {
+		"deploy": "wrangler deploy",
+		"dev": "wrangler dev --test-scheduled",
+		"start": "wrangler dev",
+		"test": "vitest",
+		"cf-typegen": "wrangler types"
+	},
+	"devDependencies": {
+		"@cloudflare/vitest-pool-workers": "^0.6.4",
+		"@cloudflare/workers-types": "^4.20250224.0",
+		"@types/node": "^22.13.8",
+		"drizzle-kit": "^0.30.5",
+		"tsx": "^4.19.3",
+		"typescript": "^5.5.2",
+		"vitest": "~2.1.9",
+		"wrangler": "^3.111.0"
+	},
+	"dependencies": {
+		"cheerio": "^1.0.0",
+		"dotenv": "^16.4.7",
+		"drizzle-orm": "^0.40.0"
+	}
+}

@@ -1,0 +1,20 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "bot-inspect",
+	"main": "src/index.ts",
+	"compatibility_date": "2025-02-24",
+	"observability": {
+		"enabled": true
+	},
+	"triggers": {
+		"crons": ["*/5 * * * *"]
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "db_name",
+			"database_id": "****e23846y9",
+			"migrations_dir": "drizzle"
+		}
+	]
+}
