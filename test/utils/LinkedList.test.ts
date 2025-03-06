@@ -23,17 +23,20 @@ describe('Linked List', () => {
 		expect(list.peek(0)).toBe(30);
 		expect(list.peek(1)).toBe(20);
 		expect(list.peek(2)).toBe(10);
+		expect(() => list.peek(3)).throws();
 	});
 
 	it('should insert at the start.', () => {
 		expect(list.peek()).toBe(30);
+		list.insertStart(40);
+		expect(list.peek()).toBe(40);
 	});
 
 	it('should insert at the end.', () => {
 		list.insertEnd(40);
 		list.insertEnd(50);
+		expect(list.getTail()).toBe(50);
 		list.insertEnd(60);
-
 		expect(list.getTail()).toBe(60);
 	});
 
@@ -51,6 +54,9 @@ describe('Linked List', () => {
 		exact = list.peek(1);
 		list.deleteStart();
 		expect(list.peek()).toBe(exact);
+
+		list.deleteAll();
+		expect(() => list.deleteStart()).throws();
 	});
 
 	it('should delete from end', () => {
@@ -61,6 +67,9 @@ describe('Linked List', () => {
 		exact = list.peek(list.length() - 2);
 		list.deleteEnd();
 		expect(list.getTail()).toBe(exact);
+
+		list.deleteAll();
+		expect(() => list.deleteEnd()).throws();
 	});
 
 	it('should delete from any position', () => {
@@ -76,6 +85,9 @@ describe('Linked List', () => {
 		exact = list.peek(5);
 		list.delete(4);
 		expect(list.peek(4)).toBe(exact);
+
+		expect(() => list.delete(-1)).throws();
+		expect(() => list.delete(list.length())).throws();
 	});
 
 	it('should check empty', () => {
