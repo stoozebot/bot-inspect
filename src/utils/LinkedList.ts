@@ -153,6 +153,18 @@ export default class LinkedList<T> {
 	}
 }
 
-class Node<T> {
-	constructor(public data: T, public next: Node<T> | null) {}
+export class Node<T> {
+	private connector: Node<any> | null = null;
+	constructor(public data: T, public next: Node<T> | null = null) {}
+
+	public getConnection(): Node<any> | null {
+		return this.connector;
+	}
+
+	public connect(node: Node<any>): void {
+		this.connector = node;
+		if (!node.getConnection()) {
+			node.connect(this);
+		}
+	}
 }

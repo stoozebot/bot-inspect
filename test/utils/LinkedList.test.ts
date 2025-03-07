@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import LinkedList from '../../src/utils/LinkedList';
+import LinkedList, { Node } from '../../src/utils/LinkedList';
 
 describe('Linked List', () => {
 	const list = new LinkedList<number>();
@@ -100,5 +100,22 @@ describe('Linked List', () => {
 		expect(list.length()).toBe(3);
 		list.insert(40);
 		expect(list.length()).toBe(4);
+	});
+});
+
+describe('Node', () => {
+	const node = new Node<number>(10);
+	node.next = new Node<number>(20);
+
+	it('should get the next node', () => {
+		expect(node.next).toEqual({ data: 20, next: null, connector: null });
+	});
+
+	it('should connect and get the connection', () => {
+		const node2 = new Node(30);
+		node.connect(node2);
+
+		expect(node.getConnection()).toEqual(node2);
+		expect(node2.getConnection()).toEqual(node);
 	});
 });
