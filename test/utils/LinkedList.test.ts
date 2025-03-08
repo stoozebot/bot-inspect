@@ -113,18 +113,28 @@ describe('Linked List', () => {
 });
 
 describe('Node', () => {
-	const node = new Node<number>(10);
-	node.next = new Node<number>(20);
+	let node: Node<number>, node2: Node<number>;
+
+	beforeEach(() => {
+		node = new Node<number>(10);
+		node.next = new Node<number>(20);
+		node2 = new Node(30);
+	});
 
 	it('should get the next node', () => {
 		expect(node.next).toEqual({ data: 20, next: null, connector: null });
 	});
 
 	it('should connect and get the connection', () => {
-		const node2 = new Node(30);
 		node.connect(node2);
 
 		expect(node.getConnection()).toEqual(node2);
 		expect(node2.getConnection()).toEqual(node);
+	});
+
+	it('should check connection', () => {
+		expect(node.isConnected()).toBe(false);
+		node.connect(node2);
+		expect(node.isConnected()).toBe(true);
 	});
 });

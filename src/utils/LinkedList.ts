@@ -177,6 +177,10 @@ export class Node<T> {
 		return this.connector;
 	}
 
+	public isConnected(): boolean {
+		return !!this.connector;
+	}
+
 	public connect(node: Node<any>): void {
 		this.connector = node;
 		if (!node.getConnection()) {
