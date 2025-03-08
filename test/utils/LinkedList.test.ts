@@ -26,6 +26,15 @@ describe('Linked List', () => {
 		expect(() => list.peek(3)).throws();
 	});
 
+	it('should allow peeking a node.', () => {
+		expect(() => list.peekNode(-1)?.data).throws();
+		expect(list.peekNode()?.data).toBe(30);
+		expect(list.peekNode(0)?.data).toBe(30);
+		expect(list.peekNode(1)?.data).toBe(20);
+		expect(list.peekNode(2)?.data).toBe(10);
+		expect(() => list.peekNode(3)?.data).throws();
+	});
+
 	it('should insert at the start.', () => {
 		expect(list.peek()).toBe(30);
 		list.insertStart(40);

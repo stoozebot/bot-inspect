@@ -140,6 +140,22 @@ export default class LinkedList<T> {
 		}
 	}
 
+	public peekNode(index?: number): Node<T> | null {
+		if (index == undefined || index == 0) return this.head;
+		if (index >= this.count || index < 0) {
+			throw new Error(`invalid index: ${index}`);
+		} else if (index == this.count - 1) {
+			return this.tail;
+		} else {
+			let currNode = this.head;
+			for (let i = 1; i <= index; i++) {
+				currNode = (currNode as Node<T>).next;
+			}
+
+			return currNode;
+		}
+	}
+
 	public getTail(): T | null {
 		return this.tail ? this.tail.data : null;
 	}
