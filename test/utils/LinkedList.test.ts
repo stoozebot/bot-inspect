@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import LinkedList, { Node } from '../../src/utils/LinkedList';
 
-describe('Linked List', () => {
+describe('Linked List', { sequential: true }, () => {
 	const list = new LinkedList<number>();
 	const list2 = new LinkedList<number>();
 
@@ -10,6 +10,10 @@ describe('Linked List', () => {
 		list.insertStart(10);
 		list.insertStart(20);
 		list.insertStart(30);
+
+		list2.insert(10);
+		list2.insert(20);
+		list2.insert(30);
 	});
 
 	it('should delete the whole list', () => {
@@ -99,7 +103,30 @@ describe('Linked List', () => {
 		expect(() => list.delete(list.length())).throws();
 	});
 
+	it('should disconnect all the connected nodes.', () => {
+		for (let i = 0; i < list.length(); i++) {
+			const item1 = list.peekNode(i);
+			const item2 = list2.peekNode(i);
+			if (!item1 || !item2) {
+				break;
+			}
+
+			item1.connect(item2);
+		}
+
+		for (let i = 0; i < list.length(); i++) {
+			expect(list.peekNode(i)?.isConnected()).toBe(true);
+		}
+
+		list.disconnectAll();
+
+		for (let i = 0; i < list.length(); i++) {
+			expect(list.peekNode(i)?.isConnected()).toBe(false);
+		}
+	});
+
 	it('should check empty', () => {
+		list2.deleteAll();
 		expect(list2.isEmpty()).toBe(true);
 		list2.insert(10, 0);
 		expect(list2.isEmpty()).toBe(false);
@@ -112,7 +139,7 @@ describe('Linked List', () => {
 	});
 });
 
-describe('Node', () => {
+describe('Node', { sequential: true }, () => {
 	let node: Node<number>, node2: Node<number>;
 
 	beforeEach(() => {
@@ -136,5 +163,13 @@ describe('Node', () => {
 		expect(node.isConnected()).toBe(false);
 		node.connect(node2);
 		expect(node.isConnected()).toBe(true);
+	});
+
+	it('should disconnect the connection.', () => {
+		node.connect(node2);
+		expect(node.isConnected()).toBe(true);
+
+		node.disconnect();
+		expect(node.isConnected()).toBe(false);
 	});
 });

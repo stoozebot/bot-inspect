@@ -124,6 +124,13 @@ export default class LinkedList<T> {
 		this.count = 0;
 	}
 
+	public disconnectAll(): void {
+		for (let i = 0; i < this.length(); i++) {
+			const node = this.peekNode(i);
+			if (node?.isConnected()) node.disconnect();
+		}
+	}
+
 	public peek(index?: number): T | null {
 		if (index == undefined || index == 0) return this.head ? this.head.data : null;
 		if (index >= this.count || index < 0) {
@@ -179,6 +186,12 @@ export class Node<T> {
 
 	public isConnected(): boolean {
 		return !!this.connector;
+	}
+
+	public disconnect(): void {
+		const connectedNode = this.getConnection();
+		this.connector = null;
+		if (connectedNode == this) connectedNode.disconnect();
 	}
 
 	public connect(node: Node<any>): void {
