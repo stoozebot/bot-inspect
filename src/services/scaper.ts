@@ -26,9 +26,13 @@ export class Scaper {
 
 	async awaitLoad() {
 		return new Promise((res, rej) => {
-			this.load().then((data) => {
-				res(data);
-			});
+			this.load()
+				.then((data) => {
+					res(data);
+				})
+				.catch(() => {
+					rej('failed to load data.');
+				});
 		});
 	}
 
