@@ -3,9 +3,9 @@ import { Notice } from '..';
 
 export type ShortNotice = Omit<Notice, 'id' | 'files' | 'links' | 'is_external' | 'created_at'>;
 
-class Scaper {
+export class Scaper {
 	url: URL = new URL('https://www.soa.ac.in/iter');
-	private $: cheerio.CheerioAPI | null = null;
+	protected $: cheerio.CheerioAPI | null = null;
 
 	constructor() {}
 
