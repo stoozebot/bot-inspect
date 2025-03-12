@@ -1,10 +1,11 @@
 import * as cheerio from 'cheerio';
-import { Notice } from '..';
+import { Link, Notice } from '..';
 
 export type ShortNotice = Omit<Notice, 'id' | 'files' | 'links' | 'is_external' | 'created_at'>;
+export type LinksNotice = Pick<Notice, 'is_external' | 'links'>;
 
 export class Scaper {
-	url: URL = new URL('https://www.soa.ac.in/iter');
+	private static url: URL = new URL('https://www.soa.ac.in/iter');
 	protected $: cheerio.CheerioAPI | null = null;
 
 	constructor() {}
@@ -14,7 +15,7 @@ export class Scaper {
 	}
 
 	async load() {
-		const res = await fetch(this.url, { method: 'GET', headers: { 'User-Agent': 'Chrome/110.0.0.0' } });
+		const res = await fetch(Scaper.url, { method: 'GET', headers: { 'User-Agent': 'Chrome/110.0.0.0' } });
 		const doc = await res.text();
 
 		if (res.status !== 200) {
@@ -48,7 +49,7 @@ export class Scaper {
 
 				const datum: ShortNotice = {
 					date: el('time').attr('datetime') as string,
-					url: `${this.url.origin}${el('div.summary-title a').prop('href')}`,
+					url: `${Scaper.url.origin}${el('div.summary-title a').prop('href')}`,
 					title: el('div.summary-title a').text(),
 				};
 				data[i] = datum;
@@ -56,6 +57,35 @@ export class Scaper {
 
 			return data;
 		}
+	}
+
+	async getNoticeData(noticeData: ShortNotice): Promise<LinksNotice> {
+		const res = await fetch(noticeData.url, { method: 'GET', headers: { 'User-Agent': 'Chrome/110.0.0.0' } });
+		const html = await res.text();
+		let links: Link[] = [];
+
+		const $ = cheerio.load(html);
+		const targetElements = $('[data-layout-label="Post Body"] div.row div.col > div.sqs-block');
+
+		const isExternal = !(targetElements.hasClass('html-block') || targetElements.hasClass('image-block'));
+
+		if (isExternal) {
+			targetElements.map((i, el) => {
+				const $ = cheerio.load(el);
+				const btn = $('a.sqs-block-button-element');
+				links.push({
+					label: btn.text().trim(),
+					url: btn.prop('href') || Scaper.url.href,
+				});
+			});
+		} else {
+			links.push({ label: 'view notice', url: noticeData.url });
+		}
+
+		return {
+			is_external: isExternal,
+			links: links,
+		};
 	}
 }
 
