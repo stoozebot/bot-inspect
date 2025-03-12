@@ -2668,8 +2668,7 @@ College in Odisha. ITER is located in Bhubaneswar, Odisha."
 																			<a
 																				href="/iter-news-and-events/2025/1/21/notice-and-schedule-for-the-mid-semester-examination-of-non-promotional-and-late-promoted-students"
 																				class="summary-title-link"
-																				>Notice and Schedule for the Mid Semester Examination of Non-Promotional and Late Promoted
-																				Students</a
+																				>Notice and Schedule for the Mid Semester Examination of Non-Promotional and Late Promoted Students</a
 																			>
 																		</div>
 
