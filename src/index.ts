@@ -1,4 +1,5 @@
-import scaper, { ShortNotice } from './services/scaper';
+import scraper, { ShortNotice } from './services/scaper';
+import { checkUpdates, genCompleteNotice } from './updateHandle';
 import LinkedList from './utils/LinkedList';
 
 export interface Notice {
@@ -91,7 +92,7 @@ let savedNoticeList = new LinkedList<WithId<ShortNotice>>();
 
 export default {
 	async scheduled(event, env, ctx) {
-		const fetchedList = await scaper.getData(10);
+		const fetchedList = await scraper.getData(10);
 		const fetchedListWithId = addIdsOf(fetchedList);
 		let latestNoticeList = new LinkedList<WithId<ShortNotice>>();
 
@@ -102,8 +103,16 @@ export default {
 		}
 
 		const updates: WithId<ShortNotice>[] = checkUpdates(savedNoticeList, latestNoticeList);
+		const completeUpdates: Notice[] = [];
 
-		console.log(`Updates: ${updates.length}`);
+		if (updates.length) {
+			for (let update of updates) {
+				completeUpdates.push(await genCompleteNotice(update));
+			}
+		}
+
+		console.log('complete updates: ');
+		console.log(JSON.stringify(completeUpdates));
 	},
 } satisfies ExportedHandler<Env>;
 
@@ -136,43 +145,4 @@ export function addIdsOf(shortNotice: ShortNotice[]): WithId<ShortNotice>[] {
 	}
 
 	return finalList;
-}
-
-export function checkEq<T>(ob1: T, ob2: T, ...fields: String[]): boolean {
-	for (let field of fields) {
-		if (ob1[field as keyof T] !== ob2[field as keyof T]) return false;
-	}
-
-	return true;
-}
-
-export function checkUpdates(savedNoticeList: LinkedList<WithId<ShortNotice>>, latestNoticeList: LinkedList<WithId<ShortNotice>>) {
-	const updates: WithId<ShortNotice>[] = [];
-
-	for (let i = 0; i < savedNoticeList.length(); i++) {
-		for (let j = 0; j < latestNoticeList.length(); j++) {
-			let savedItem = savedNoticeList.peekNode(i);
-			let latestItem = latestNoticeList.peekNode(j);
-
-			if (!savedItem?.data || !latestItem?.data) {
-				break;
-			}
-
-			if (!latestItem.isConnected())
-				if (checkEq<WithId<ShortNotice>>(savedItem.data, latestItem.data, 'url', 'title')) {
-					savedItem.connect(latestItem);
-				}
-		}
-	}
-
-	for (let i = 0; i < latestNoticeList.length(); i++) {
-		const item = latestNoticeList.peekNode(i);
-		if (!item) break;
-
-		if (!item.isConnected()) {
-			updates.push(item.data);
-		}
-	}
-
-	return updates;
 }

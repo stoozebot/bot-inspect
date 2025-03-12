@@ -1,7 +1,8 @@
 import { beforeAll, describe, expect, it } from 'vitest';
-import { addIdsOf, checkEq, insertDataToLList, WithId, checkUpdates } from '../src/index';
+import { addIdsOf, insertDataToLList, WithId } from '../src/index';
 import { ShortNotice } from '../src/services/scaper';
 import LinkedList from '../src/utils/LinkedList';
+import { checkEq, checkUpdates } from '../src/updateHandle';
 
 function numSheeps(nums: number[]): number {
 	let counts: any = {};
@@ -148,14 +149,7 @@ describe('Main', { sequential: true }, () => {
 			for (let j = 0; j < cachedList.length; j++) {
 				for (let k = 0; k < cachedList.length; k++) {
 					for (let l = 0; l < cachedList.length; l++) {
-						const savedList = cachedList.filter(
-							(list, index) => index !== i && index !== j && index !== k && index !== l // && index !== m &&
-							// index !== n &&
-							// index !== o &&
-							// index !== p &&
-							// index !== q &&
-							// index !== r
-						);
+						const savedList = cachedList.filter((list, index) => index !== i && index !== j && index !== k && index !== l);
 						list1.deleteAll();
 						list2.disconnectAll();
 
