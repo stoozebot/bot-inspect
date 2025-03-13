@@ -4,7 +4,7 @@ import { Link, Notice } from '..';
 export type ShortNotice = Omit<Notice, 'id' | 'files' | 'links' | 'is_external' | 'created_at'>;
 export type LinksNotice = Pick<Notice, 'is_external' | 'links'>;
 
-export class Scaper {
+export class Scraper {
 	private static url: URL = new URL('https://www.soa.ac.in/iter');
 	protected $: cheerio.CheerioAPI | null = null;
 
@@ -15,7 +15,7 @@ export class Scaper {
 	}
 
 	async load() {
-		const res = await fetch(Scaper.url, { method: 'GET', headers: { 'User-Agent': 'Chrome/110.0.0.0' } });
+		const res = await fetch(Scraper.url, { method: 'GET', headers: { 'User-Agent': 'Chrome/110.0.0.0' } });
 		const doc = await res.text();
 
 		if (res.status !== 200) {
@@ -49,7 +49,7 @@ export class Scaper {
 
 				const datum: ShortNotice = {
 					date: el('time').attr('datetime') as string,
-					url: `${Scaper.url.origin}${el('div.summary-title a').prop('href')}`,
+					url: `${Scraper.url.origin}${el('div.summary-title a').prop('href')}`,
 					title: el('div.summary-title a').text(),
 				};
 				data[i] = datum;
@@ -75,7 +75,7 @@ export class Scaper {
 				const btn = $('a.sqs-block-button-element');
 				links.push({
 					label: btn.text().trim(),
-					url: btn.prop('href') || Scaper.url.href,
+					url: btn.prop('href') || Scraper.url.href,
 				});
 			});
 		} else {
@@ -89,4 +89,4 @@ export class Scaper {
 	}
 }
 
-export default new Scaper();
+export default new Scraper();

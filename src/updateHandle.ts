@@ -1,5 +1,5 @@
 import { Notice, WithId } from '.';
-import scraper, { ShortNotice } from './services/scaper';
+import scraper, { ShortNotice } from './services/scraper';
 import LinkedList from './utils/LinkedList';
 
 export function checkUpdates(savedNoticeList: LinkedList<WithId<ShortNotice>>, latestNoticeList: LinkedList<WithId<ShortNotice>>) {

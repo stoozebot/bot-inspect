@@ -1,4 +1,4 @@
-import scraper, { ShortNotice } from './services/scaper';
+import { Scraper, ShortNotice } from './services/scraper';
 import { checkUpdates, genCompleteNotice } from './updateHandle';
 import LinkedList from './utils/LinkedList';
 
@@ -92,6 +92,8 @@ let savedNoticeList = new LinkedList<WithId<ShortNotice>>();
 
 export default {
 	async scheduled(event, env, ctx) {
+		const scraper = new Scraper();
+
 		const fetchedList = await scraper.getData(10);
 		const fetchedListWithId = addIdsOf(fetchedList);
 		let latestNoticeList = new LinkedList<WithId<ShortNotice>>();
@@ -109,6 +111,7 @@ export default {
 			for (let update of updates) {
 				completeUpdates.push(await genCompleteNotice(update));
 			}
+			savedNoticeList = latestNoticeList;
 		}
 
 		console.log('complete updates: ');

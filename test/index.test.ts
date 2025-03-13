@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { addIdsOf, insertDataToLList, WithId } from '../src/index';
-import { ShortNotice } from '../src/services/scaper';
+import { ShortNotice } from '../src/services/scraper';
 import LinkedList from '../src/utils/LinkedList';
 import { checkEq, checkUpdates } from '../src/updateHandle';
 

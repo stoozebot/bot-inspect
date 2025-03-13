@@ -1,11 +1,11 @@
 import * as cheerio from 'cheerio';
 import { describe, expect, it } from 'vitest';
 import { WithId } from '../../src';
-import { LinksNotice, Scaper, ShortNotice } from '../../src/services/scaper';
+import { LinksNotice, Scraper, ShortNotice } from '../../src/services/scraper';
 import index from './index.txt';
 
 describe('Scraper', { sequential: true }, async () => {
-	class rScraper extends Scaper {
+	class rScraper extends Scraper {
 		constructor() {
 			super();
 		}
