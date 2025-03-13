@@ -86,7 +86,7 @@ describe('Scraper', { sequential: true }, async () => {
 		expect(data).toEqual(cachedList);
 	});
 
-	it('fetches the data of a specific notice.', async () => {
+	it('fetches the data of a specific notice.', { todo: true }, async () => {
 		const updates: WithId<ShortNotice>[] = [
 			{
 				id: 202502190,

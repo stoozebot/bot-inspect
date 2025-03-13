@@ -172,5 +172,8 @@ dist
 .dev.vars
 .wrangler/
 
+# builds
+drizzle
+
 # personal
 lastMod.*
