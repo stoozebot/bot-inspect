@@ -1,11 +1,29 @@
 import { beforeAll, describe, expect, it } from 'vitest';
-import { addIdsOf, insertDataToLList, WithId } from '../src/index';
+import { insertDataToLList, WithId } from '../src';
 import { ShortNotice } from '../src/services/scraper';
-import LinkedList from '../src/utils/LinkedList';
 import { checkEq, checkUpdates } from '../src/updateHandle';
+import LinkedList from '../src/utils/LinkedList';
 
-describe('Main', { sequential: true }, () => {
-	let fetchedList: ShortNotice[] = [];
+function numSheeps(nums: number[]): number {
+	let counts: any = {};
+	let count: number = 0;
+
+	for (let i = 0; i < nums.length; i++) {
+		counts[`${i}`] = 0;
+	}
+
+	for (let i = 0; i < nums.length; i++) {
+		counts[`${nums[i]}`]++;
+	}
+
+	for (let i in counts) {
+		if (counts[i] != 0) count++;
+	}
+
+	return count;
+}
+
+describe('update handler', () => {
 	let cachedList: WithId<ShortNotice>[] = [];
 	let list1 = new LinkedList<WithId<ShortNotice>>();
 	let list2 = new LinkedList<WithId<ShortNotice>>();
@@ -73,27 +91,52 @@ describe('Main', { sequential: true }, () => {
 				title: 'Notice regarding Scholarship',
 			},
 		];
-		fetchedList = cachedList.map<ShortNotice>((item) => {
-			const newItem: ShortNotice & { id?: number } = JSON.parse(JSON.stringify(item));
-			delete newItem.id;
-			return newItem;
-		});
-	});
-
-	it('inserts data to a linked list.', () => {
-		expect(list1.isEmpty()).toBe(true);
-
-		insertDataToLList(list1, fetchedList as any);
 		insertDataToLList(list2, cachedList);
-
-		expect(list1.isEmpty()).toBe(false);
-		expect(list1.getTail()).toEqual(fetchedList[0]);
-		expect(list2.getTail()).toEqual(cachedList[0]);
 	});
 
-	it('adds ids to fetched data.', () => {
-		expect(fetchedList[0]).not.toMatchObject({ id: 202502190 });
-		fetchedList = addIdsOf(fetchedList);
-		expect(fetchedList[0]).toMatchObject({ id: 202502190 });
+	it('checks how many different numbers are there in an array.', () => {
+		expect(numSheeps([1, 2, 3, 4])).toBe(4);
+		expect(numSheeps([1, 1, 3, 1])).toBe(2);
+		expect(numSheeps([1, 3, 1, 4])).toBe(3);
+		expect(numSheeps([1, 1, 3, 1])).toBe(2);
+		expect(numSheeps([1, 1, 1, 1])).toBe(1);
+	});
+
+	it('check equality of two objects.', () => {
+		const obj1 = {
+			name: 'Josh Amedani',
+			age: 10,
+		};
+
+		const obj2 = {
+			name: 'Harsh Jain',
+			age: 15,
+		};
+
+		const obj3 = {
+			name: 'Harsh Jain',
+			age: 15,
+		};
+
+		expect(checkEq(obj1, obj2, 'name', 'age')).toBe(false);
+		expect(checkEq(obj2, obj3, 'name', 'age')).toBe(true);
+	});
+
+	it('checks updates.', () => {
+		for (let i = 0; i < cachedList.length; i++) {
+			for (let j = 0; j < cachedList.length; j++) {
+				for (let k = 0; k < cachedList.length; k++) {
+					for (let l = 0; l < cachedList.length; l++) {
+						const savedList = cachedList.filter((list, index) => index !== i && index !== j && index !== k && index !== l);
+						list1.deleteAll();
+						list2.disconnectAll();
+
+						insertDataToLList(list1, savedList);
+
+						expect(checkUpdates(list1, list2).length).toBe(numSheeps([i, j, k, l]));
+					}
+				}
+			}
+		}
 	});
 });
