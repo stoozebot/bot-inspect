@@ -1,9 +1,8 @@
-import { DrizzleD1Database } from 'drizzle-orm/d1';
-import { Notice, WithId } from '.';
-import scraper, { ShortNotice } from './services/scraper';
-import LinkedList from './utils/LinkedList';
-import noticesTable from './db/noticesTable';
 import { sql } from 'drizzle-orm';
+import { DrizzleD1Database } from 'drizzle-orm/d1';
+import { Notice, NoticeMap, WithId } from '.';
+import noticesTable from './db/noticesTable';
+import scraper, { ShortNotice } from './services/scraper';
 
 type Code = 'database' | 'send';
 export class UpdateHandleError extends Error {
@@ -46,35 +45,42 @@ export class UpdateHandler {
 	}
 }
 
-export function checkUpdates(savedNoticeList: LinkedList<WithId<ShortNotice>>, latestNoticeList: LinkedList<WithId<ShortNotice>>) {
+export function checkUpdates(savedNoticeMap: NoticeMap<Notice>, latestNoticeMap: NoticeMap<WithId<ShortNotice>>) {
 	const updates: WithId<ShortNotice>[] = [];
 
-	for (let i = 0; i < savedNoticeList.length(); i++) {
-		for (let j = 0; j < latestNoticeList.length(); j++) {
-			let savedItem = savedNoticeList.peekNode(i);
-			let latestItem = latestNoticeList.peekNode(j);
+	for (let key in latestNoticeMap) {
+		if (!savedNoticeMap[key]) {
+			latestNoticeMap[key].map((notice) => {
+				updates.push(notice);
+			});
+		} else {
+			for (let i = 0; i < latestNoticeMap[key].length; i++) {
+				let found = false;
 
-			if (!savedItem?.data || !latestItem?.data) {
-				break;
-			}
-
-			if (!latestItem.isConnected())
-				if (checkEq<WithId<ShortNotice>>(savedItem.data, latestItem.data, 'url', 'title')) {
-					savedItem.connect(latestItem);
+				for (let j = 0; j < savedNoticeMap[key].length; j++) {
+					if (isEqual(latestNoticeMap[key][i], savedNoticeMap[key][j], 'title', 'url')) {
+						found = true;
+						break;
+					}
 				}
-		}
-	}
 
-	for (let i = 0; i < latestNoticeList.length(); i++) {
-		const item = latestNoticeList.peekNode(i);
-		if (!item) break;
-
-		if (!item.isConnected()) {
-			updates.push(item.data);
+				if (!found) {
+					checkIdEqualityAndModify(latestNoticeMap[key][i], savedNoticeMap[key]);
+					updates.push(latestNoticeMap[key][i]);
+				} else found = false;
+			}
 		}
 	}
 
 	return updates;
+}
+
+export function checkIdEqualityAndModify(notice1: WithId<ShortNotice>, notice2: Notice[]) {
+	for (let i = 0; i < notice2.length; i++) {
+		if (notice1.id == notice2[i].id) {
+			notice1.id++;
+		}
+	}
 }
 
 export async function genCompleteNotice(shortNotice: WithId<ShortNotice>): Promise<Notice> {
@@ -87,7 +93,7 @@ export async function genCompleteNotice(shortNotice: WithId<ShortNotice>): Promi
 	} satisfies Notice;
 }
 
-export function checkEq<T>(ob1: T, ob2: T, ...fields: String[]): boolean {
+export function isEqual<T>(ob1: T, ob2: T, ...fields: String[]): boolean {
 	for (let field of fields) {
 		if (ob1[field as keyof T] !== ob2[field as keyof T]) return false;
 	}
