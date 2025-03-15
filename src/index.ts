@@ -1,8 +1,7 @@
 import { drizzle, DrizzleD1Database } from 'drizzle-orm/d1';
 import noticesTable from './db/noticesTable';
 import { Scraper, ShortNotice } from './services/scraper';
-import { checkUpdates, genCompleteNotice, UpdateHandler, UpdateHandleError, checkEq } from './updateHandle';
-import LinkedList from './utils/LinkedList';
+import { checkUpdates, genCompleteNotice, UpdateHandleError, UpdateHandler } from './updateHandle';
 
 export interface Notice {
 	id: number;
@@ -14,6 +13,8 @@ export interface Notice {
 	is_external: boolean;
 	created_at: Date;
 }
+
+export type NoticeMap<T> = Record<number, T[]>;
 
 export interface Link {
 	label: string;
@@ -28,7 +29,7 @@ export interface File {
 export type WithId<T> = T & { id: number };
 
 let db: DrizzleD1Database<Record<string, never>> & { $client: D1Database };
-let savedNoticeList = new LinkedList<WithId<ShortNotice>>();
+let savedNotices: NoticeMap<Notice> = {};
 
 export default {
 	async scheduled(event, env, ctx) {
@@ -40,24 +41,19 @@ export default {
 		}
 
 		const fetchedData = addIdsOf(await scraper.getData(10));
-		let latestNoticeList = new LinkedList<WithId<ShortNotice>>();
-		insertDataToLList(latestNoticeList, fetchedData);
+		let latestNotices: NoticeMap<WithId<ShortNotice>> = {};
+		insertDataToMap(latestNotices, fetchedData);
 
-		if (savedNoticeList.isEmpty()) {
+		if (!Object.keys(savedNotices).length) {
 			const lastNotices = (await db.select().from(noticesTable)).sort((a, b) => a.id - b.id);
-			insertDataToLList(savedNoticeList, lastNotices);
+			insertDataToMap(savedNotices, lastNotices);
 		}
 
-		const updates: WithId<ShortNotice>[] = checkUpdates(savedNoticeList, latestNoticeList);
+		const updates: WithId<ShortNotice>[] = checkUpdates(savedNotices, latestNotices);
 		const completeUpdates: Notice[] = [];
 
 		if (updates.length) {
 			for (let update of updates) {
-				for (let i = 0; i < savedNoticeList.length(); i++) {
-					if (checkEq(update, savedNoticeList.peek(i), 'id')) {
-						update.id++;
-					}
-				}
 				completeUpdates.push(await genCompleteNotice(update));
 			}
 
@@ -78,27 +74,40 @@ export default {
 	},
 } satisfies ExportedHandler<Env>;
 
-export function insertDataToLList(list: LinkedList<WithId<ShortNotice>>, data: WithId<ShortNotice>[]) {
-	for (let i = data.length - 1; i >= 0; i--) {
-		list.insert(data[i]);
+export function insertDataToMap(list: NoticeMap<WithId<ShortNotice>>, data: WithId<ShortNotice>[]): void {
+	for (let i = 0; i < data.length; i++) {
+		const key = getKey(data[i].id);
+		let field = list[key];
+		field ? list[key].push(data[i]) : (list[key] = [data[i]]);
 	}
 }
 
+export function getKey(id: number) {
+	return parseInt(`${id}`.substring(0, 8));
+}
+
 export function addIdsOf(shortNotice: ShortNotice[]): WithId<ShortNotice>[] {
-	let cacheId: string = '0';
+	let lastCreatedId: string = '0';
 	let count: number = 0;
 	const finalList: WithId<ShortNotice>[] = [];
 
 	for (let i = 0; i < shortNotice.length; i++) {
-		let id = shortNotice[i].date.split('-').join('');
+		const splits = shortNotice[i].date.split('-').map((item, index) => {
+			if (index > 0) {
+				if (item.length !== 2) return '0' + item;
+			}
+			return item;
+		});
 
-		if (cacheId !== '0' && id === cacheId) {
+		let id = splits.join('');
+
+		if (lastCreatedId !== '0' && id === lastCreatedId) {
 			count++;
 		} else {
 			count = 0;
 		}
 
-		cacheId = id;
+		lastCreatedId = id;
 
 		finalList.push({
 			id: parseInt(id + count),

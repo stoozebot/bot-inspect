@@ -1,14 +1,11 @@
 import { beforeAll, describe, expect, it } from 'vitest';
-import { addIdsOf, insertDataToLList, WithId } from '../src/index';
+import { addIdsOf, getKey, insertDataToMap, NoticeMap, WithId } from '../src/index';
 import { ShortNotice } from '../src/services/scraper';
-import LinkedList from '../src/utils/LinkedList';
-import { checkEq, checkUpdates } from '../src/updateHandle';
 
 describe('Main', { sequential: true }, () => {
 	let fetchedList: ShortNotice[] = [];
 	let cachedList: WithId<ShortNotice>[] = [];
-	let list1 = new LinkedList<WithId<ShortNotice>>();
-	let list2 = new LinkedList<WithId<ShortNotice>>();
+	let map2: NoticeMap<WithId<ShortNotice>> = {};
 
 	beforeAll(() => {
 		cachedList = [
@@ -73,27 +70,26 @@ describe('Main', { sequential: true }, () => {
 				title: 'Notice regarding Scholarship',
 			},
 		];
-		fetchedList = cachedList.map<ShortNotice>((item) => {
+		fetchedList = cachedList.map((item) => {
 			const newItem: ShortNotice & { id?: number } = JSON.parse(JSON.stringify(item));
 			delete newItem.id;
 			return newItem;
 		});
 	});
 
-	it('inserts data to a linked list.', () => {
-		expect(list1.isEmpty()).toBe(true);
-
-		insertDataToLList(list1, fetchedList as any);
-		insertDataToLList(list2, cachedList);
-
-		expect(list1.isEmpty()).toBe(false);
-		expect(list1.getTail()).toEqual(fetchedList[0]);
-		expect(list2.getTail()).toEqual(cachedList[0]);
+	it('inserts data to a Map.', () => {
+		expect(Object.keys(map2).length).toBe(0);
+		insertDataToMap(map2, cachedList);
+		expect(map2[getKey(cachedList[0].id)][0]).toEqual(cachedList[0]);
 	});
 
 	it('adds ids to fetched data.', () => {
 		expect(fetchedList[0]).not.toMatchObject({ id: 202502190 });
 		fetchedList = addIdsOf(fetchedList);
 		expect(fetchedList[0]).toMatchObject({ id: 202502190 });
+	});
+
+	it('gets the key of a notice map.', () => {
+		expect(getKey(202403280)).toBe(20240328);
 	});
 });

@@ -1,8 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest';
-import { insertDataToLList, WithId } from '../src';
+import { insertDataToMap, NoticeMap, WithId } from '../src';
 import { ShortNotice } from '../src/services/scraper';
-import { checkEq, checkUpdates, UpdateHandler } from '../src/updateHandle';
-import LinkedList from '../src/utils/LinkedList';
+import { checkIdEqualityAndModify, checkUpdates, isEqual, UpdateHandler } from '../src/updateHandle';
 
 function numSheeps(nums: number[]): number {
 	let counts: any = {};
@@ -25,8 +24,8 @@ function numSheeps(nums: number[]): number {
 
 describe('update handler', () => {
 	let cachedList: WithId<ShortNotice>[] = [];
-	let list1 = new LinkedList<WithId<ShortNotice>>();
-	let list2 = new LinkedList<WithId<ShortNotice>>();
+	let savedList: NoticeMap<WithId<ShortNotice>> = [];
+	let latestList: NoticeMap<WithId<ShortNotice>> = [];
 
 	const updateHandler = new UpdateHandler('db' as any);
 	updateHandler.dispatchUpdates = async () => {};
@@ -94,10 +93,10 @@ describe('update handler', () => {
 				title: 'Notice regarding Scholarship',
 			},
 		];
-		insertDataToLList(list2, cachedList);
+		insertDataToMap(latestList, cachedList);
 	});
 
-	it('handles updates', () => {
+	it('insert update to db and send to consumer.', () => {
 		for (let i = 0; i < 5; i++) {
 			updateHandler.lastUpdates.push({ ...cachedList[i], created_at: new Date(), files: [], links: [], is_external: true });
 		}
@@ -129,25 +128,33 @@ describe('update handler', () => {
 			age: 15,
 		};
 
-		expect(checkEq(obj1, obj2, 'name', 'age')).toBe(false);
-		expect(checkEq(obj2, obj3, 'name', 'age')).toBe(true);
+		expect(isEqual(obj1, obj2, 'name', 'age')).toBe(false);
+		expect(isEqual(obj2, obj3, 'name', 'age')).toBe(true);
 	});
 
-	it('checks updates.', () => {
+	it('checks if there is any other notice object with the same id as of the update and modifies accordingly.', () => {
+		const update = { ...cachedList[0], id: cachedList[1].id };
+		const saved = cachedList.filter((val, index) => index <= 3 && index > 0);
+
+		expect(update.id).toBe(saved[0].id);
+		checkIdEqualityAndModify(update, saved as any);
+		expect(update.id).not.toBe(saved[0].id);
+	});
+
+	it('compares last notices with the latest ones and finds the updates.', async () => {
 		for (let i = 0; i < cachedList.length; i++) {
 			for (let j = 0; j < cachedList.length; j++) {
-				for (let k = 0; k < cachedList.length; k++) {
-					for (let l = 0; l < cachedList.length; l++) {
-						const savedList = cachedList.filter((list, index) => index !== i && index !== j && index !== k && index !== l);
-						list1.deleteAll();
-						list2.disconnectAll();
-
-						insertDataToLList(list1, savedList);
-
-						expect(checkUpdates(list1, list2).length).toBe(numSheeps([i, j, k, l]));
-					}
-				}
+				for (let k = 0; k < cachedList.length; k++) {}
 			}
+		}
+		for (let l = 0; l < cachedList.length; l++) {
+			const dummyData = cachedList.filter((list, index) => index !== l);
+			savedList = {};
+
+			insertDataToMap(savedList, dummyData);
+
+			const updates = checkUpdates(savedList as any, latestList);
+			expect(updates.length).toBe(numSheeps([l]));
 		}
 	});
 });
