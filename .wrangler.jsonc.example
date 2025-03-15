@@ -13,7 +13,13 @@
 		{
 			"binding": "DB",
 			"database_name": "db_name",
-			"database_id": "****e23846y9",
+			"database_id": "3r***e23846y9",
+			"migrations_dir": "drizzle"
+		},
+		{
+			"binding": "localDB",
+			"database_name": "testDB",
+			"database_id": "test_id",
 			"migrations_dir": "drizzle"
 		}
 	]
