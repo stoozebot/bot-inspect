@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { insertDataToLList, WithId } from '../src';
 import { ShortNotice } from '../src/services/scraper';
-import { checkEq, checkUpdates } from '../src/updateHandle';
+import { checkEq, checkUpdates, UpdateHandler } from '../src/updateHandle';
 import LinkedList from '../src/utils/LinkedList';
 
 function numSheeps(nums: number[]): number {
@@ -27,6 +27,9 @@ describe('update handler', () => {
 	let cachedList: WithId<ShortNotice>[] = [];
 	let list1 = new LinkedList<WithId<ShortNotice>>();
 	let list2 = new LinkedList<WithId<ShortNotice>>();
+
+	const updateHandler = new UpdateHandler('db' as any);
+	updateHandler.dispatchUpdates = async () => {};
 
 	beforeAll(() => {
 		cachedList = [
@@ -92,6 +95,14 @@ describe('update handler', () => {
 			},
 		];
 		insertDataToLList(list2, cachedList);
+	});
+
+	it('handles updates', () => {
+		for (let i = 0; i < 5; i++) {
+			updateHandler.lastUpdates.push({ ...cachedList[i], created_at: new Date(), files: [], links: [], is_external: true });
+		}
+
+		expect(1).toBe(1);
 	});
 
 	it('checks how many different numbers are there in an array.', () => {

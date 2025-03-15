@@ -1,5 +1,7 @@
+import { drizzle, DrizzleD1Database } from 'drizzle-orm/d1';
+import noticesTable from './db/noticesTable';
 import { Scraper, ShortNotice } from './services/scraper';
-import { checkUpdates, genCompleteNotice } from './updateHandle';
+import { checkUpdates, genCompleteNotice, UpdateHandler, UpdateHandleError, checkEq } from './updateHandle';
 import LinkedList from './utils/LinkedList';
 
 export interface Notice {
@@ -25,83 +27,25 @@ export interface File {
 
 export type WithId<T> = T & { id: number };
 
-let cachedList: WithId<ShortNotice>[] = [
-	// {
-	// 	id: 202502190,
-	// 	date: '2025-02-19',
-	// 	url: 'https://www.soa.ac.in/iter-news-and-events/2025/2/22/notice-and-schedule-for-end-semester-examination-of-non-promotional-and-late-promoted-students',
-	// 	title: 'Notice and Schedule for End Semester Examination of Non Promotional and Late Promoted Students',
-	// },
-	{
-		id: 202501270,
-		date: '2025-01-27',
-		url: 'https://www.soa.ac.in/iter-news-and-events/2025/1/29/programme-for-end-semester-examination-for-1st-semester-students',
-		title: 'Programme for End-Semester Examination for 1st Semester Students',
-	},
-	{
-		id: 202501200,
-		date: '2025-01-20',
-		url: 'https://www.soa.ac.in/iter-news-and-events/2025/1/21/notice-and-schedule-for-the-mid-semester-examination-of-non-promotional-and-late-promoted-students',
-		title: 'Notice and Schedule for the Mid Semester Examination of Non-Promotional and Late Promoted Students',
-	},
-	{
-		id: 202501091,
-		date: '2025-01-09',
-		url: 'https://www.soa.ac.in/iter-news-and-events/2025/1/9/notice-regarding-commencement-of-2nd-semester-classes',
-		title: 'Notice regarding commencement of 2nd Semester Classes',
-	},
-	{
-		id: 202501090,
-		date: '2025-01-09',
-		url: 'https://www.soa.ac.in/iter-news-and-events/2025/1/9/bwxeavb71nt2i7g4odd7tmu2jv7sub',
-		title: 'Notice regarding End Semester Examination for 1st Semester Students',
-	},
-	{
-		id: 202501070,
-		date: '2025-01-07',
-		url: 'https://www.soa.ac.in/iter-news-and-events/2025/1/7/notice-regarding-shifting-of-examination',
-		title: 'Notice regarding shifting of examination',
-	},
-	{
-		id: 202501040,
-		date: '2025-01-04',
-		url: 'https://www.soa.ac.in/iter-news-and-events/2025/1/4/notice-regarding-class-suspension',
-		title: 'Notice regarding class suspension',
-	},
-	{
-		id: 202501011,
-		date: '2025-01-01',
-		url: 'https://www.soa.ac.in/iter-news-and-events/2025/1/3/schedule-for-3rd-semester-end-semester-examination',
-		title: 'Schedule for 3rd Semester End Semester Examination',
-	},
-	{
-		id: 202501010,
-		date: '2025-01-01',
-		url: 'https://www.soa.ac.in/iter-news-and-events/2025/1/3/schedule-for-5th-semester-end-semester-examination',
-		title: 'Schedule for 5th Semester End Semester Examination',
-	},
-	{
-		id: 202412280,
-		date: '2024-12-28',
-		url: 'https://www.soa.ac.in/iter-news-and-events/2024/12/29/notice-regarding-scholarship',
-		title: 'Notice regarding Scholarship',
-	},
-];
-
+let db: DrizzleD1Database<Record<string, never>> & { $client: D1Database };
 let savedNoticeList = new LinkedList<WithId<ShortNotice>>();
 
 export default {
 	async scheduled(event, env, ctx) {
 		const scraper = new Scraper();
+		const dbContext = env.DEV !== 'false' ? env.localDB : env.DB;
 
-		const fetchedList = await scraper.getData(10);
-		const fetchedListWithId = addIdsOf(fetchedList);
+		if (!db) {
+			db = drizzle(dbContext);
+		}
+
+		const fetchedData = addIdsOf(await scraper.getData(10));
 		let latestNoticeList = new LinkedList<WithId<ShortNotice>>();
-
-		insertDataToLList(latestNoticeList, fetchedListWithId);
+		insertDataToLList(latestNoticeList, fetchedData);
 
 		if (savedNoticeList.isEmpty()) {
-			insertDataToLList(savedNoticeList, cachedList);
+			const lastNotices = (await db.select().from(noticesTable)).sort((a, b) => a.id - b.id);
+			insertDataToLList(savedNoticeList, lastNotices);
 		}
 
 		const updates: WithId<ShortNotice>[] = checkUpdates(savedNoticeList, latestNoticeList);
@@ -109,13 +53,28 @@ export default {
 
 		if (updates.length) {
 			for (let update of updates) {
+				for (let i = 0; i < savedNoticeList.length(); i++) {
+					if (checkEq(update, savedNoticeList.peek(i), 'id')) {
+						update.id++;
+					}
+				}
 				completeUpdates.push(await genCompleteNotice(update));
 			}
-			savedNoticeList = latestNoticeList;
-		}
 
-		console.log('complete updates: ');
-		console.log(JSON.stringify(completeUpdates));
+			const updateHandler = new UpdateHandler(db);
+
+			let retries = 0;
+			while (true) {
+				try {
+					await updateHandler.dispatchUpdates(completeUpdates);
+				} catch (error: unknown) {
+					if (error instanceof UpdateHandleError) {
+						if (++retries <= 3) continue;
+					}
+				}
+				break;
+			}
+		}
 	},
 } satisfies ExportedHandler<Env>;
 
