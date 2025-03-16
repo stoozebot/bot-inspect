@@ -13,14 +13,16 @@
 		{
 			"binding": "DB",
 			"database_name": "db_name",
-			"database_id": "3r***e23846y9",
-			"migrations_dir": "drizzle"
-		},
+			"database_id": "your***db***id",
+			"migrations_dir": "drizzle",
+			"preview_database_id": "your***preview***id"
+		}
+	],
+	"kv_namespaces": [
 		{
-			"binding": "localDB",
-			"database_name": "testDB",
-			"database_id": "test_id",
-			"migrations_dir": "drizzle"
+			"binding": "KV",
+			"id": "your***kv****id",
+			"preview_id": "your***preview***id"
 		}
 	]
 }

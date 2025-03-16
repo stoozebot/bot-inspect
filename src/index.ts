@@ -34,7 +34,7 @@ let savedNotices: NoticeMap<Notice> = {};
 export default {
 	async scheduled(event, env, ctx) {
 		const scraper = new Scraper();
-		const dbContext = env.DEV !== 'false' ? env.localDB : env.DB;
+		const dbContext = env.DB;
 
 		if (!db) {
 			db = drizzle(dbContext);
