@@ -1,0 +1,37 @@
+name: deploy bot-inspect
+
+on:
+  push:
+    branches:
+      - ci/*
+      - feat/*
+      - fix/*
+
+    workflow_dispatch:
+
+jobs:
+  dev:
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v4
+
+      - name: test
+        shell: bash
+        run: |
+          npm install
+          npm run test
+
+      - name: write to wrangler config file
+        shell: bash
+        run: |
+          cd ./
+          touch wrangler.jsonc
+          echo ${{ secrets.WRANGLER_CONFIG }} > wrangler.jsonc
+
+      - name: deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
