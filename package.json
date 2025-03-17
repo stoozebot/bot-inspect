@@ -5,7 +5,7 @@
 	"scripts": {
 		"deploy": "wrangler deploy",
 		"dev": "wrangler dev --test-scheduled",
-		"start": "wrangler dev --remote",
+		"start": "wrangler dev --remote --test-scheduled",
 		"test": "vitest",
 		"cf-typegen": "wrangler types"
 	},

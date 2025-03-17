@@ -57,7 +57,7 @@ export default {
 				completeUpdates.push(await genCompleteNotice(update));
 			}
 
-			const updateHandler = new UpdateHandler(db);
+			const updateHandler = new UpdateHandler(db, env);
 
 			let retries = 0;
 			while (true) {

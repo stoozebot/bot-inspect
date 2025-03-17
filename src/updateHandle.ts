@@ -15,7 +15,7 @@ export class UpdateHandleError extends Error {
 
 export class UpdateHandler {
 	lastUpdates: Notice[] = [];
-	constructor(public db: DrizzleD1Database<Record<string, never>> & { $client: D1Database }) {}
+	constructor(public db: DrizzleD1Database<Record<string, never>> & { $client: D1Database }, public env: Env) {}
 
 	async dispatchUpdates(updates: Notice[]): Promise<void> {
 		try {
@@ -27,11 +27,23 @@ export class UpdateHandler {
 		this.lastUpdates = updates;
 
 		try {
-			// simulating send
-			console.log(`added:\n ${JSON.stringify(updates)}`);
+			const key = crypto.randomUUID() + '$' + Date.now();
+			await this.env.KV.put(key, JSON.stringify(updates));
+
+			const url = new URL(this.env.DISPATCH_URL);
+
+			await fetch(url.origin + '/update-trigger', {
+				method: 'POST',
+				headers: {
+					'X-API-Key': this.env.API_KEY,
+				},
+				body: JSON.stringify({
+					key,
+				}),
+			});
 		} catch (error) {
 			const err = new UpdateHandleError('failed to send updates', 'send');
-			console.error('failed to send updates...');
+			console.error(error);
 			console.log('rolling back...');
 			await this.rollback();
 			throw err;
