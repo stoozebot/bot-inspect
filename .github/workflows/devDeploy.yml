@@ -1,13 +1,13 @@
 name: deploy bot-inspect
 
 on:
+  workflow_dispatch:
+
   push:
     branches:
       - ci/*
       - feat/*
       - fix/*
-
-    workflow_dispatch:
 
 jobs:
   dev:
@@ -29,9 +29,3 @@ jobs:
         run: |
           npm install
           npm run test
-
-      - name: deploy
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
