@@ -17,13 +17,17 @@ cd bot-inspect
 npm i
 ```
 
-2. Run Tests (Optional)
+2. Run Tests (recommended)
 
 ```sh
 npm run test
 ```
 
-3. Run dev server locally
+3. Add Configurations
+
+<p>Change wrangler.jsonc.example -> wrangler.jsonc and add your configurations accordingly.</p>
+
+4. Run dev server locally
 
 ```sh
 npm run dev
