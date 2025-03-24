@@ -26,27 +26,28 @@ export class UpdateHandler {
 		}
 		this.lastUpdates = updates;
 
+		let key: string;
+
 		try {
-			const key = crypto.randomUUID() + '$' + Date.now();
+			key = crypto.randomUUID() + '$' + Date.now();
 			await this.env.KV.put(key, JSON.stringify(updates));
-
-			const url = new URL(this.env.DISPATCH_URL);
-
-			await fetch(url.origin + '/update-trigger', {
-				method: 'POST',
-				headers: {
-					'X-API-Key': this.env.API_KEY,
-				},
-				body: JSON.stringify({
-					key,
-				}),
-			});
+			try {
+				const url = new URL(this.env.DISPATCH_URL);
+				await fetch(url.origin + '/update-trigger', {
+					method: 'POST',
+					headers: {
+						'X-API-Key': this.env.API_KEY,
+					},
+					body: JSON.stringify({
+						key,
+					}),
+				});
+			} catch (error) {
+				await this.handleSendError(error, 'failed to send updates to dispatcher');
+				await this.env.KV.delete(key);
+			}
 		} catch (error) {
-			const err = new UpdateHandleError('failed to send updates', 'send');
-			console.error(error);
-			console.log('rolling back...');
-			await this.rollback();
-			throw err;
+			await this.handleSendError(error, 'failed to put updates to KV');
 		}
 	}
 
@@ -54,6 +55,14 @@ export class UpdateHandler {
 		for (let notice of this.lastUpdates) {
 			await this.db.delete(noticesTable).where(sql`${noticesTable.id} = ${notice.id}`);
 		}
+	}
+
+	async handleSendError(error: unknown, message: string) {
+		const err = new UpdateHandleError(message, 'send');
+		console.error(error);
+		console.log('rolling back...');
+		await this.rollback();
+		throw err;
 	}
 }
 
