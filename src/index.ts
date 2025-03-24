@@ -63,6 +63,7 @@ export default {
 			while (true) {
 				try {
 					await updateHandler.dispatchUpdates(completeUpdates);
+					savedNotices = {};
 				} catch (error: unknown) {
 					if (error instanceof UpdateHandleError) {
 						if (++retries <= 3) continue;
