@@ -4,12 +4,12 @@ import { Notice, NoticeMap, WithId } from '.';
 import noticesTable from './db/noticesTable';
 import scraper, { ShortNotice } from './services/scraper';
 
-type Code = 'database' | 'send';
+type Type = 'database' | 'send';
 export class UpdateHandleError extends Error {
-	code: Code;
-	constructor(msg: string, code: Code) {
+	type: Type;
+	constructor(msg: string, type: Type) {
 		super(msg);
-		this.code = code;
+		this.type = type;
 	}
 }
 
@@ -43,8 +43,8 @@ export class UpdateHandler {
 					}),
 				});
 			} catch (error) {
-				await this.handleSendError(error, 'failed to send updates to dispatcher');
 				await this.env.KV.delete(key);
+				await this.handleSendError(error, 'failed to send updates to dispatcher');
 			}
 		} catch (error) {
 			await this.handleSendError(error, 'failed to put updates to KV');
@@ -55,6 +55,7 @@ export class UpdateHandler {
 		for (let notice of this.lastUpdates) {
 			await this.db.delete(noticesTable).where(sql`${noticesTable.id} = ${notice.id}`);
 		}
+		this.lastUpdates = [];
 	}
 
 	async handleSendError(error: unknown, message: string) {
