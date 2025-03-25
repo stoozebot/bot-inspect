@@ -29,10 +29,10 @@ export interface File {
 export type WithId<T> = T & { id: number };
 
 let db: DrizzleD1Database<Record<string, never>> & { $client: D1Database };
-let savedNotices: NoticeMap<Notice> = {};
 
 export default {
 	async scheduled(event, env, ctx) {
+		let savedNotices: NoticeMap<Notice> = {};
 		const scraper = new Scraper();
 		const dbContext = env.DB;
 
