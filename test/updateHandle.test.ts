@@ -8,15 +8,11 @@ function numSheeps(nums: number[]): number {
 	let count: number = 0;
 
 	for (let i = 0; i < nums.length; i++) {
-		counts[`${i}`] = 0;
-	}
-
-	for (let i = 0; i < nums.length; i++) {
-		counts[`${nums[i]}`]++;
+		counts[nums[i]] = 0;
 	}
 
 	for (let i in counts) {
-		if (counts[i] != 0) count++;
+		count++;
 	}
 
 	return count;
@@ -27,7 +23,7 @@ describe('update handler', () => {
 	let savedList: NoticeMap<WithId<ShortNotice>> = [];
 	let latestList: NoticeMap<WithId<ShortNotice>> = [];
 
-	const updateHandler = new UpdateHandler('db' as any);
+	const updateHandler = new UpdateHandler('db' as any, 'env' as any);
 	updateHandler.dispatchUpdates = async () => {};
 
 	beforeAll(() => {
@@ -144,17 +140,18 @@ describe('update handler', () => {
 	it('compares last notices with the latest ones and finds the updates.', async () => {
 		for (let i = 0; i < cachedList.length; i++) {
 			for (let j = 0; j < cachedList.length; j++) {
-				for (let k = 0; k < cachedList.length; k++) {}
+				for (let k = 0; k < cachedList.length; k++) {
+					for (let l = 0; l < cachedList.length; l++) {
+						const dummyData = cachedList.filter((list, index) => index !== i && index !== j && index !== k && index !== l);
+						savedList = {};
+
+						insertDataToMap(savedList, dummyData);
+
+						const updates = checkUpdates(savedList as any, latestList);
+						expect(updates.length).toBe(numSheeps([i, j, k, l]));
+					}
+				}
 			}
-		}
-		for (let l = 0; l < cachedList.length; l++) {
-			const dummyData = cachedList.filter((list, index) => index !== l);
-			savedList = {};
-
-			insertDataToMap(savedList, dummyData);
-
-			const updates = checkUpdates(savedList as any, latestList);
-			expect(updates.length).toBe(numSheeps([l]));
 		}
 	});
 });
