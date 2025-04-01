@@ -92,7 +92,7 @@ export function addIdsOf(shortNotice: ShortNotice[]): WithId<ShortNotice>[] {
 	let count: number = 0;
 	const finalList: WithId<ShortNotice>[] = [];
 
-	for (let i = 0; i < shortNotice.length; i++) {
+	for (let i = shortNotice.length - 1; i >= 0; i--) {
 		const splits = shortNotice[i].date.split('-').map((item, index) => {
 			if (index > 0) {
 				if (item.length !== 2) return '0' + item;
