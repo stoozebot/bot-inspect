@@ -110,7 +110,7 @@ export function addIdsOf(shortNotice: ShortNotice[]): WithId<ShortNotice>[] {
 
 		lastCreatedId = id;
 
-		finalList.push({
+		finalList.unshift({
 			id: parseInt(id + count),
 			...shortNotice[i],
 		});
