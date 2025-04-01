@@ -89,7 +89,7 @@ export function checkUpdates(savedNoticeMap: NoticeMap<Notice>, latestNoticeMap:
 				if (!found) {
 					checkIdEqualityAndModify(latestNoticeMap[key][i], savedNoticeMap[key]);
 					updates.push(latestNoticeMap[key][i]);
-				} else found = false;
+				}
 			}
 		}
 	}
@@ -97,10 +97,10 @@ export function checkUpdates(savedNoticeMap: NoticeMap<Notice>, latestNoticeMap:
 	return updates;
 }
 
-export function checkIdEqualityAndModify(notice1: WithId<ShortNotice>, notice2: Notice[]) {
-	for (let i = 0; i < notice2.length; i++) {
-		if (notice1.id == notice2[i].id) {
-			notice1.id++;
+export function checkIdEqualityAndModify(newNotice: WithId<ShortNotice>, savedNotices: Notice[]) {
+	for (let i = 0; i < savedNotices.length; i++) {
+		if (newNotice.id === savedNotices[i].id) {
+			newNotice.id++;
 		}
 	}
 }
