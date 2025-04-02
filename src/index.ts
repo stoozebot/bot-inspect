@@ -40,7 +40,13 @@ export default {
 			db = drizzle(dbContext);
 		}
 
-		const fetchedData = addIdsOf(await scraper.getData(10));
+		let fetchedData: WithId<ShortNotice>[];
+		try {
+			fetchedData = addIdsOf(await scraper.getData(10));
+		} catch (error) {
+			return;
+		}
+
 		let latestNotices: NoticeMap<WithId<ShortNotice>> = {};
 		insertDataToMap(latestNotices, fetchedData);
 
