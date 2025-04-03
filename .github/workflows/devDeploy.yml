@@ -29,3 +29,9 @@ jobs:
         run: |
           npm install
           npm run test
+
+      - name: deploy
+        shell: bash
+        run: |
+          export CLOUDFLARE_API_TOKEN=${{ secrets.CLOUDFLARE_API_TOKEN }}
+          npx wrangler deploy > deploy.log && rm deploy.log
