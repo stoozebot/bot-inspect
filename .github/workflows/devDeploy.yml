@@ -1,13 +1,13 @@
-name: deploy bot-inspect
+name: deploy bot-inspect dev
 
 on:
-  workflow_dispatch:
-
   push:
     branches:
       - ci/*
       - feat/*
       - fix/*
+
+  workflow_dispatch:
 
 jobs:
   dev:
@@ -24,7 +24,7 @@ jobs:
           touch wrangler.jsonc
           echo ${{ secrets.WRANGLER_CONFIG }} > wrangler.jsonc
 
-      - name: test
+      - name: run tests
         shell: bash
         run: |
           npm install
