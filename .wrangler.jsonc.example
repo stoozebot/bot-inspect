@@ -3,6 +3,7 @@
 	"name": "bot-inspect",
 	"main": "src/index.ts",
 	"compatibility_date": "2025-02-24",
+	"account_id": "your_account_id",
 	"observability": {
 		"enabled": true
 	},

@@ -1,0 +1,56 @@
+name: deploy bot-inspect prod
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  dev:
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v4
+
+      - name: write to wrangler config file
+        shell: bash
+        run: |
+          cd ./
+          touch wrangler.jsonc
+          echo ${{ secrets.WRANGLER_CONFIG }} > wrangler.jsonc
+
+      - name: install dependencies
+        shell: bash
+        run: npm install
+
+      - name: run tests
+        shell: bash
+        run: npm run test
+
+      - name: deploy dev
+        shell: bash
+        run: |
+          export CLOUDFLARE_API_TOKEN = ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          npx wrangler deploy > deploy.log && rm deploy.log
+
+  prod:
+    runs-on: ubuntu-latest
+    environment: prod
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v4
+
+      - name: install dependencies
+        shell: bash
+        run: npm install
+
+      - name: run tests
+        shell: bash
+        run: npm run test
+
+      - name: deploy to prod
+        shell: bash
+        run: |
+          export CLOUDFLARE_API_TOKEN = ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          npx wrangler deploy > deploy.log && rm deploy.log
